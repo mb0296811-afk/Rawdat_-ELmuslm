@@ -16,4 +16,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "RawdatAlMuslim"
-include ':app'
+include(":app")
