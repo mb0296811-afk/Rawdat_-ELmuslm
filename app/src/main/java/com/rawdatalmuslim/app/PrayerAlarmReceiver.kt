@@ -1,3 +1,4 @@
+
 package com.rawdatalmuslim.app
 
 import android.content.BroadcastReceiver
@@ -6,15 +7,32 @@ import android.content.Intent
 import android.os.Build
 
 class PrayerAlarmReceiver : BroadcastReceiver() {
+
     override fun onReceive(context: Context, intent: Intent) {
-        val prefs = context.getSharedPreferences(PrayerScheduler.PREFS, Context.MODE_PRIVATE)
-        if (prefs.getBoolean("muted", false)) return
-        val service = Intent(context, AdhanPlaybackService::class.java).apply {
-            putExtra("name", intent.getStringExtra("name") ?: "الصلاة")
-            putExtra("audio", intent.getStringExtra("audio") ?: "اذان عبدالباسط.mp3")
-            putExtra("reminder", intent.getBooleanExtra("reminder", false))
+
+        val name = intent.getStringExtra("name") ?: "الصلاة"
+        val audio = intent.getStringExtra("audio")
+            ?: "اذان عبدالباسط.mp3"
+
+        val reminder = intent.getBooleanExtra("reminder", false)
+
+        val serviceIntent = Intent(
+            context,
+            AdhanService::class.java
+        ).apply {
+            putExtra("name", name)
+            putExtra("audio", audio)
+            putExtra("reminder", reminder)
         }
-        if (Build.VERSION.SDK_INT >= 26) context.startForegroundService(service) else context.startService(service)
-        if (!intent.getBooleanExtra("reminder", false)) PrayerScheduler.scheduleAll(context)
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(serviceIntent)
+            } else {
+                context.startService(serviceIntent)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }
